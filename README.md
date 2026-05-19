@@ -1,6 +1,7 @@
 # Bank App API
 
 ![Python](https://img.shields.io/badge/Python-3.11%2B-blue)
+![asyncio](https://img.shields.io/badge/asyncio-blue?logo=python&logoColor=white)
 ![FastAPI](https://img.shields.io/badge/FastAPI-0.100%2B-green)
 ![PostgreSQL](https://img.shields.io/badge/PostgreSQL-15-blue)
 ![SQLAlchemy](https://img.shields.io/badge/SQLAlchemy-2.0+-red)
@@ -19,7 +20,7 @@
 
 - Регистрация и вход пользователей с получением JWT-токенов (AuthX)
 - Защищённые маршруты (требуют валидный токен)
-- База данных PostgreSQL с SQLAlchemy (psycopg2)
+- База данных PostgreSQL с SQLAlchemy (asyncpg)
 - Управление переменными окружения (Pydantic Settings)
 - Автоматическая интерактивная документация API (Swagger UI)
 
@@ -125,6 +126,7 @@ uvicorn app.main:app --reload
 ## 🗺 Roadmap
 
 ```bash
+- [+] Переписать синхронный код на асинхронный, смена psycopg2 на asyncpg
 - [ ] Добавить полноценную регистрацию пользователя
 - [ ] Написать тесты (pytest) для всех эндпоинтов
 - [ ] Подключить кэширование (Redis) для часто запрашиваемых данных
