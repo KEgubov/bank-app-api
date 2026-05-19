@@ -1,3 +1,4 @@
+import asyncio
 import random
 from decimal import Decimal
 
@@ -12,7 +13,7 @@ from src.services.decorator import validate_phone_number
 class AccountService:
 
     @staticmethod
-    def generate_random_account_number() -> str:
+    async def generate_random_account_number() -> str:
         """
         Метод генерирует случайный номер счёта состоящий из 20 цифр
         для физ лица.
@@ -24,7 +25,7 @@ class AccountService:
         return acc_number
 
     @staticmethod
-    def validate_account(account: AccountAddDTO) -> list[AccountDTO] | None:
+    async def validate_account(account: AccountAddDTO) -> list[AccountDTO] | None:
         """
         Метод принимает данные извне, распаковывает в модель Account
         и передаёт её в репозиторий методу create_account_in_db.
@@ -34,7 +35,7 @@ class AccountService:
         :return: list[AccountDTO] | None
         """
         model_account = Account(**account.model_dump())
-        added_account = account_repository.create_account_in_db(model_account)
+        added_account = await account_repository.create_account_in_db(model_account)
         if added_account:
             result_dto = [
                 AccountDTO.model_validate(added_account, from_attributes=True)
@@ -43,13 +44,13 @@ class AccountService:
         return None
 
     @staticmethod
-    def validate_account_info(user_id: int) -> list[AccountDTO] | None:
+    async def validate_account_info(user_id: int) -> list[AccountDTO] | None:
         """
         Метод принимает модель Account из репозитория от
         метода get_account_info и преобразует её в модель DTO.
         :return: list[AccountDTO] | None
         """
-        model_account = account_repository.get_account_info(user_id)
+        model_account = await account_repository.get_account_info(user_id)
         if model_account:
             result_dto = [
                 AccountDTO.model_validate(model_account, from_attributes=True)
@@ -58,13 +59,13 @@ class AccountService:
         return None
 
     @staticmethod
-    def validate_actual_balance(user_id: int) -> list[ActuallyBalanceDTO] | None:
+    async def validate_actual_balance(user_id: int) -> list[ActuallyBalanceDTO] | None:
         """
         Метод принимает строку результирующего набора из репозитория от
         метода get_account_info и преобразует её в модель DTO.
         :return: list[ActuallyBalanceDTO] | None
         """
-        actual_balance = account_repository.get_actual_balance(user_id)
+        actual_balance = await account_repository.get_actual_balance(user_id)
         if actual_balance:
             result_dto = [
                 ActuallyBalanceDTO.model_validate(row, from_attributes=True)
@@ -74,8 +75,8 @@ class AccountService:
         return None
 
     @staticmethod
-    @validate_phone_number()
-    def validate_target_account(phone_number: str) -> list[TargetAccountDTO] | None:
+    @validate_phone_number
+    async def validate_target_account(phone_number: str) -> list[TargetAccountDTO] | None:
         """
         Метод принимает номер телефона и передаёт его в метод
         get_target_account для получения счёта получателя.
@@ -84,7 +85,7 @@ class AccountService:
         :param phone_number: str
         :return: list[TargetAccountDTO] | None
         """
-        model_account = account_repository.get_target_account(phone_number)
+        model_account = await account_repository.get_target_account(phone_number)
         if model_account:
             result_dto = [
                 TargetAccountDTO.model_validate(row, from_attributes=True)
@@ -94,7 +95,7 @@ class AccountService:
         return None
 
     @staticmethod
-    def response_top_up_balance(
+    async def response_top_up_balance(
         account_id: int, card_number: str, amount: Decimal
     ) -> bool | None:
         """
@@ -113,10 +114,10 @@ class AccountService:
                 message="Amount must be greater or equal to 0",
                 error_code="INVALID_AMOUNT",
             )
-        return account_repository.top_up_balance(account_id, card_number, amount)
+        return await account_repository.top_up_balance(account_id, card_number, amount)
 
     @staticmethod
-    def response_transfer_money(
+    async def response_transfer_money(
         target_card_number: str,
         target_account_id: int,
         card_number: str,
@@ -141,7 +142,7 @@ class AccountService:
                 message="Amount must be greater or equal to 0",
                 error_code="INVALID_AMOUNT",
             )
-        return account_repository.transfer_money(
+        return await account_repository.transfer_money(
             target_card_number,
             target_account_id,
             card_number,

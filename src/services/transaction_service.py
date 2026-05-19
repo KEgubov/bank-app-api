@@ -5,7 +5,7 @@ from src.schemas.relationships import AccountTransactionRelDTO
 class TransactionService:
 
     @staticmethod
-    def valid_all_txn(
+    async def valid_all_txn(
         account_id: int,
     ) -> list[AccountTransactionRelDTO] | None:
         """
@@ -14,7 +14,7 @@ class TransactionService:
         :param account_id: int
         :return: list[AccountTransactionRelDTO] | None
         """
-        all_txn = txn_repository.get_all_txn(account_id)
+        all_txn = await txn_repository.get_all_txn(account_id)
         if all_txn:
             result_dto = [
                 AccountTransactionRelDTO.model_validate(row, from_attributes=True)

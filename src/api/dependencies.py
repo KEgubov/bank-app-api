@@ -9,10 +9,10 @@ from src.schemas.custom import CurrentUserDTO
 from src.services.user_service import user_service
 
 
-def get_current_user(
+async def get_current_user(
     payload: TokenPayload = Depends(security.access_token_required),
 ) -> CurrentUserDTO:
-    user = user_service.validate_current_user(user_id=int(payload.sub))
+    user = await user_service.validate_current_user(user_id=int(payload.sub))
     if not user:
         raise HTTPException(status_code=404, detail="User not found")
     return user

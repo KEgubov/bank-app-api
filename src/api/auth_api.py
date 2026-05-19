@@ -11,15 +11,15 @@ from src.services.user_service import user_service
 router = APIRouter(prefix="/bank_app/v1/welcome", tags=["Welcome"])
 
 @router.post("/registration")
-def input_data_user(user: UserAddDTO) -> dict[str, bool | Any]:
-    user = user_service.validate_user(user)
+async def input_data_user(user: UserAddDTO) -> dict[str, bool | Any]:
+    user = await user_service.validate_user(user)
     if not user:
         raise HTTPException(status_code=409, detail="User already registered")
     return {"success": True, "user": user}
 
 @router.post("/login")
-def login(creds: LoginData, response: Response) -> dict[str, str]:
-    user = auth_service.resp_authenticate_user(creds)
+async def login(creds: LoginData, response: Response) -> dict[str, str]:
+    user = await auth_service.resp_authenticate_user(creds)
     if not user:
         raise HTTPException(status_code=401, detail="Incorrect username or password")
     token = security.create_access_token(uid=str(user.user_id))

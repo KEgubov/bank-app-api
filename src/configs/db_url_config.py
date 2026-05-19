@@ -13,7 +13,7 @@ class Settings(BaseSettings):
     @property
     def DATABASE_URL(self):
         return (
-            f"postgresql+psycopg2://"
+            f"postgresql+asyncpg://"
             f"{self.DB_USER}:{self.DB_PASS}"
             f"@{self.DB_HOST}:{self.DB_PORT}/{self.DB_NAME}"
         )
