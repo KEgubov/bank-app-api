@@ -1,0 +1,1 @@
+from src.configs.db_url_config import settings

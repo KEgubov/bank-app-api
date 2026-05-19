@@ -1,0 +1,9 @@
+DB_HOST=localhost
+DB_PORT=5432
+DB_USER=postgres
+DB_PASS=password
+DB_NAME=db_name
+
+
+JWT_SECRET_KEY=your-secret-key-here-change-me
+JWT_ACCESS_COOKIE_NAME=your_access_cookie_name
