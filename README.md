@@ -8,6 +8,8 @@
 ![Uvicorn](https://img.shields.io/badge/Uvicorn-0.25+-brightgreen)
 ![Pydantic](https://img.shields.io/badge/Pydantic-2.0+-purple)
 ![AuthX](https://img.shields.io/badge/AuthX-1.0+-blueviolet)
+![License](https://img.shields.io/badge/License-MIT-yellow)
+![GitHub last commit](https://img.shields.io/github/last-commit/KEgubov/bank-app-api)
 
 **REST API для банковского приложения**, реализованный на **FastAPI** с аутентификацией через **AuthX** (JWT) и хранением данных в **PostgreSQL**.
 
@@ -134,6 +136,10 @@ uvicorn app.main:app --reload
 > **Примечание:** Планы могут меняться, но эти задачи помогут сделать проект ещё надежнее и удобнее.
 ```
 
+## 💡 Вдохновение
+
+Проект создан под впечатлением от главы о транзакциях из книги **Алана Болье «Изучаем SQL»** (Alan Beaulieu, "Learning SQL").  
+Идеи атомарности операций, согласованности данных и работы с финансовыми записями легли в основу проектирования логики счетов и переводов в этом приложении.
 
 ## 📄Лицензия
 
