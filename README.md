@@ -91,7 +91,7 @@ alembic upgrade head
 
 ## 7. Запуск сервера (Uvicorn)
 ```bash
-uvicorn app.main:app --reload
+uvicorn src.main:app --reload
 ```
 
 ## 📚 Документация API

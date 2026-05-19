@@ -1,4 +1,3 @@
-import asyncio
 import datetime
 from decimal import Decimal
 
@@ -123,12 +122,10 @@ class AccountRepository(BaseRepository[Account]):
                 await session.execute(stmt_insert_in_txn)
                 await session.commit()
                 return True
-            except IntegrityError as e:
-                print(e)
+            except IntegrityError:
                 await session.rollback()
                 return False
-            except Exception as e:
-                print(e)
+            except Exception:
                 await session.rollback()
                 return False
 
@@ -195,10 +192,8 @@ class AccountRepository(BaseRepository[Account]):
                 await session.commit()
                 return True
             except IntegrityError as e:
-                print(e)
                 await session.rollback()
             except Exception as e:
-                print(e)
                 await session.rollback()
 
 

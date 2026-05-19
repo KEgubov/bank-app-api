@@ -29,7 +29,9 @@ async def input_data_account(
     account_dto.account_number = account_number
     account = await account_service.validate_account(account_dto)
     if not account:
-        return {"success": False}
+        raise HTTPException(
+            status_code=404, detail="Account not found"
+        )
     return {"success": True, "account": account}
 
 
@@ -73,7 +75,9 @@ async def top_up_account_balance(
         current_user.account_id, current_user.card_number, amount
     )
     if not top_up:
-        return {"success": False}
+        raise HTTPException(
+            status_code=404, detail="Account not found"
+        )
     return {"success": True}
 
 

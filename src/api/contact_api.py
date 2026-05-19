@@ -25,7 +25,7 @@ async def add_contact(
 async def find_user(phone_number: str, current_user: CurrentUserDep) -> dict[str, bool | Any]:
     found_user = await contact_service.validate_find_user_by_phone_number(phone_number)
     if not found_user:
-        return {"success": False, "message": "Contact not found."}
+        raise HTTPException(status_code=404, detail="Contact not found.")
     return {"success": True, "user": found_user}
 
 
