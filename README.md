@@ -6,8 +6,8 @@
 ![SQLAlchemy](https://img.shields.io/badge/SQLAlchemy-2.0+-red)
 ![Alembic](https://img.shields.io/badge/Alembic-1.12+-orange)
 ![Uvicorn](https://img.shields.io/badge/Uvicorn-0.25+-brightgreen)
-![License](https://img.shields.io/badge/License-MIT-yellow)
-![GitHub last commit](https://img.shields.io/github/last-commit/KEgubov/bank-app-api)
+![Pydantic](https://img.shields.io/badge/Pydantic-2.0+-purple)
+![AuthX](https://img.shields.io/badge/AuthX-1.0+-blueviolet)
 
 **REST API для банковского приложения**, реализованный на **FastAPI** с аутентификацией через **AuthX** (JWT) и хранением данных в **PostgreSQL**.
 
