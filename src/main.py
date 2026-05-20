@@ -4,6 +4,7 @@ from starlette.responses import JSONResponse
 
 from src.api import main_router
 from src.configs.auth_config import security
+from src.repositories.exceptions import RepositoryError
 from src.services.exceptions import BusinessError
 
 app = FastAPI()
@@ -11,6 +12,18 @@ app = FastAPI()
 app.include_router(main_router)
 
 security.handle_errors(app)
+
+
+@app.exception_handler(RepositoryError)
+def repository_error_handler(request: Request, exc: RepositoryError) -> Response:
+    return JSONResponse(
+        status_code=400,
+        content={
+            "success": False,
+            "error": exc.message,
+            "error_code": exc.error_code,
+        },
+    )
 
 
 @app.exception_handler(BusinessError)

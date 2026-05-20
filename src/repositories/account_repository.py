@@ -8,6 +8,7 @@ from sqlalchemy.orm import joinedload
 from src.core.database import async_session
 from src.models.base_models import Account, User, Transaction, TxnType, Card
 from src.repositories.base_repository import BaseRepository
+from src.repositories.exceptions import RepositoryError
 
 
 class AccountRepository(BaseRepository[Account]):
@@ -92,7 +93,7 @@ class AccountRepository(BaseRepository[Account]):
     @staticmethod
     async def top_up_balance(
         account_id: int, card_number: str, amount: Decimal
-    ) -> bool | None:
+    ) -> bool:
         """
         Пополнение собственного счёта.
         :param card_number: str
@@ -101,33 +102,26 @@ class AccountRepository(BaseRepository[Account]):
         :return: bool | None
         """
         async with async_session() as session:
-            try:
-                stmt_top_up = (
-                    update(Account)
-                    .where(Account.account_id == account_id)
-                    .values(
-                        balance=Account.balance + amount,
-                        total_operations=Account.total_operations + 1,
-                        last_activity_date=datetime.datetime.now(),
-                    )
+            stmt_top_up = (
+                update(Account)
+                .where(Account.account_id == account_id)
+                .values(
+                    balance=Account.balance + amount,
+                    total_operations=Account.total_operations + 1,
+                    last_activity_date=datetime.datetime.now(),
                 )
-                await session.execute(stmt_top_up)
+            )
 
-                stmt_insert_in_txn = insert(Transaction).values(
-                    account_id=account_id,
-                    card_number=card_number,
-                    txn_type=TxnType.C,
-                    amount=amount,
-                )
-                await session.execute(stmt_insert_in_txn)
-                await session.commit()
-                return True
-            except IntegrityError:
-                await session.rollback()
-                return False
-            except Exception:
-                await session.rollback()
-                return False
+            stmt_insert_in_txn = insert(Transaction).values(
+                account_id=account_id,
+                card_number=card_number,
+                txn_type=TxnType.C,
+                amount=amount,
+            )
+            await session.execute(stmt_top_up)
+            await session.execute(stmt_insert_in_txn)
+            await session.commit()
+            return True
 
     @staticmethod
     async def transfer_money(
@@ -136,7 +130,7 @@ class AccountRepository(BaseRepository[Account]):
         card_number: str,
         account_id: int,
         amount: Decimal,
-    ) -> bool | None:
+    ) -> bool:
         """
         Перевод по номеру телефона с указанием суммы.
         При вводе номера телефона делается запрос на наличие
@@ -151,50 +145,59 @@ class AccountRepository(BaseRepository[Account]):
         :return: bool | None
         """
         async with async_session() as session:
-            try:
-                stmt_debit = (
-                    update(Account)
-                    .where(Account.account_id == account_id)
-                    .values(
-                        balance=Account.balance - amount,
-                        total_operations=Account.total_operations + 1,
-                        last_activity_date=datetime.datetime.now(),
-                    )
-                )
-                await session.execute(stmt_debit)
+            query_lock = (
+                select(Account.balance)
+                .where(Account.account_id == account_id)
+                .with_for_update()
+            )
+            result = await session.execute(query_lock)
+            balance = result.scalar_one()
 
-                stmt_curr_txn = insert(Transaction).values(
-                    account_id=account_id,
-                    card_number=card_number,
-                    txn_type=TxnType.D,
-                    amount=amount,
+            if balance < amount:
+                raise RepositoryError(
+                    message="There are not enough funds in the account",
+                    error_code="NOT_ENOUGH_FUNDS"
                 )
-                await session.execute(stmt_curr_txn)
 
-                stmt_targ_credit = (
-                    update(Account)
-                    .where(Account.account_id == target_account_id)
-                    .values(
-                        balance=Account.balance + amount,
-                        total_operations=Account.total_operations + 1,
-                        last_activity_date=datetime.datetime.now(),
-                    )
+            stmt_debit = (
+                update(Account)
+                .where(Account.account_id == account_id)
+                .values(
+                    balance=Account.balance - amount,
+                    total_operations=Account.total_operations + 1,
+                    last_activity_date=datetime.datetime.now(),
                 )
-                await session.execute(stmt_targ_credit)
+            )
 
-                stmt_targ_txn = insert(Transaction).values(
-                    account_id=target_account_id,
-                    card_number=target_card_number,
-                    txn_type=TxnType.C,
-                    amount=amount,
+            stmt_curr_txn = insert(Transaction).values(
+                account_id=account_id,
+                card_number=card_number,
+                txn_type=TxnType.D,
+                amount=amount,
+            )
+
+            stmt_targ_credit = (
+                update(Account)
+                .where(Account.account_id == target_account_id)
+                .values(
+                    balance=Account.balance + amount,
+                    total_operations=Account.total_operations + 1,
+                    last_activity_date=datetime.datetime.now(),
                 )
-                await session.execute(stmt_targ_txn)
-                await session.commit()
-                return True
-            except IntegrityError as e:
-                await session.rollback()
-            except Exception as e:
-                await session.rollback()
+            )
+
+            stmt_targ_txn = insert(Transaction).values(
+                account_id=target_account_id,
+                card_number=target_card_number,
+                txn_type=TxnType.C,
+                amount=amount,
+            )
+            await session.execute(stmt_debit)
+            await session.execute(stmt_curr_txn)
+            await session.execute(stmt_targ_credit)
+            await session.execute(stmt_targ_txn)
+            await session.commit()
+            return True
 
 
 account_repository = AccountRepository()
