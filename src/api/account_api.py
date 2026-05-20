@@ -10,8 +10,8 @@ from src.services.account_service import account_service
 router = APIRouter(prefix="/bank_app/v1/accounts", tags=["Account"])
 
 
-@router.post("/create")
-async def input_data_account(
+@router.post("/")
+async def create_account(
     account_dto: AccountAddDTO, current_user: CurrentUserDep
 ) -> dict[str, bool] | dict[str, bool | Any]:
     """
@@ -28,15 +28,11 @@ async def input_data_account(
     account_dto.user_id = current_user.user_id
     account_dto.account_number = account_number
     account = await account_service.validate_account(account_dto)
-    if not account:
-        raise HTTPException(
-            status_code=404, detail="Account not found"
-        )
     return {"success": True, "account": account}
 
 
-@router.get("/info")
-async def account_info(
+@router.get("/me")
+async def get_my_account(
     current_user: CurrentUserDep,
 ) -> dict[str, bool] | dict[str, bool | Any]:
     """
@@ -49,10 +45,10 @@ async def account_info(
     info = await account_service.validate_account_info(current_user.user_id)
     if not info:
         raise HTTPException(status_code=404, detail="Account not found")
-    return {"success": True, "account_info": info}
+    return {"success": True, "account_info": info[0]}
 
 
-@router.get("/balance")
+@router.get("/me/balance")
 async def get_actual_balance_from_account(
     current_user: CurrentUserDep,
 ) -> dict[str, bool] | dict[str, bool | Any]:
@@ -67,7 +63,7 @@ async def get_actual_balance_from_account(
     return {"success": True, "balance": balance}
 
 
-@router.patch("/top_up/{amount}")
+@router.patch("/me/top_up/{amount}")
 async def top_up_account_balance(
     amount: Decimal, current_user: CurrentUserDep
 ) -> dict[str, bool] | dict[str, bool | Any]:
@@ -81,7 +77,7 @@ async def top_up_account_balance(
     return {"success": True}
 
 
-@router.patch("/transfer/{phone_number}")
+@router.patch("/me/transfers")
 async def account_transfer(
     phone_number: str, amount: Decimal, current_user: CurrentUserDep
 ) -> dict[str, bool | Any]:
@@ -97,4 +93,4 @@ async def account_transfer(
     )
     if not transfer:
         raise HTTPException(status_code=404, detail="Account not found")
-    return {"success": True, "transfer": transfer, "target_account": target_model}
+    return {"success": True, "transfer": transfer, "target_account": target_model[0]}

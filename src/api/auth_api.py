@@ -13,8 +13,6 @@ router = APIRouter(prefix="/bank_app/v1/welcome", tags=["Welcome"])
 @router.post("/registration")
 async def input_data_user(user: UserAddDTO) -> dict[str, bool | Any]:
     user = await user_service.validate_user(user)
-    if not user:
-        raise HTTPException(status_code=409, detail="User already registered")
     return {"success": True, "user": user}
 
 @router.post("/login")

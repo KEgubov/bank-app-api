@@ -8,7 +8,7 @@ from src.services.user_service import user_service
 router = APIRouter(prefix="/bank_app/v1/users", tags=["User"])
 
 
-@router.get("/name/{phone_number}")
+@router.get("/{phone_number}")
 async def get_user_by_phone(
     phone_number: str, current_user: CurrentUserDep
 ) -> dict[str, bool | Any]:
@@ -26,7 +26,7 @@ async def user_profile(current_user: CurrentUserDep) -> dict[str, bool | Any]:
     return {"success": True, "user": profile}
 
 
-@router.get("/owner")
+@router.get("/me/owner")
 async def get_owner_name(current_user: CurrentUserDep) -> dict[str, bool | Any]:
     name = await user_service.validate_owner_name(current_user.user_id)
     if not name:

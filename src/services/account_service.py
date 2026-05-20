@@ -25,7 +25,7 @@ class AccountService:
         return acc_number
 
     @staticmethod
-    async def validate_account(account: AccountAddDTO) -> list[AccountDTO] | None:
+    async def validate_account(account: AccountAddDTO) -> AccountDTO | None:
         """
         Метод принимает данные извне, распаковывает в модель Account
         и передаёт её в репозиторий методу create_account_in_db.
@@ -37,9 +37,7 @@ class AccountService:
         model_account = Account(**account.model_dump())
         added_account = await account_repository.create_account_in_db(model_account)
         if added_account:
-            result_dto = [
-                AccountDTO.model_validate(added_account, from_attributes=True)
-            ]
+            result_dto = AccountDTO.model_validate(added_account, from_attributes=True)
             return result_dto
         return None
 

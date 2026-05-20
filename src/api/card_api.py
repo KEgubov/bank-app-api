@@ -9,7 +9,7 @@ from src.services.card_service import card_service
 router = APIRouter(prefix="/bank_app/v1/cards", tags=["Card"])
 
 
-@router.post("/add")
+@router.post("/")
 async def add_card(
     card_dto: CardAddDTO, current_user: CurrentUserDep
 ) -> dict[str, bool | Any]:
@@ -34,18 +34,26 @@ async def card_number(current_user: CurrentUserDep) -> dict[str, bool | Any]:
     number = await card_service.validate_card_number(current_user.card_number)
     if not number:
         raise HTTPException(status_code=404, detail="Card number not found")
-    return {"success": True, "number": number}
+    return {"success": True, "number": number[0]}
 
 
 @router.get("/all")
 async def all_cards(current_user: CurrentUserDep) -> dict[str, bool | Any]:
-    card_list = await card_service.validate_all_cards_from_account(current_user.account_id)
+    """
+    Эндпоинт получает все имеющиеся карты пользователя.
+    В случае отсутствия карт возвращает пустой список.
+    :param current_user: CurrentUserDep
+    :return: dict[str, bool | Any]
+    """
+    card_list = await card_service.validate_all_cards_from_account(
+        current_user.account_id
+    )
     if not card_list:
-        raise HTTPException(status_code=404, detail="Card number not found")
-    return {"success": True, "cards": card_list}
+        return {"success": False, "account": card_list[0]}
+    return {"success": True, "account": card_list[0]}
 
 
-@router.get("/find")
+@router.get("/search")
 async def find_user_card(current_user: CurrentUserDep) -> bool:
     response = await card_service.response_find_card(current_user.card_number)
     return response

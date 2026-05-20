@@ -6,7 +6,7 @@ from src.schemas.contact_schema import ContactDTO
 class ContactService:
 
     @staticmethod
-    async def create_new_contact(user_id: int, phone_number: str) -> list[ContactDTO] | None:
+    async def create_new_contact(user_id: int, phone_number: str) -> ContactDTO | None:
         target_contact = await contact_service.validate_find_user_by_phone_number(
             phone_number
         )
@@ -19,9 +19,7 @@ class ContactService:
         )
         added_contact = await contact_repository.create_contact_in_db(convert_model)
         if added_contact:
-            result_dto = [
-                ContactDTO.model_validate(added_contact, from_attributes=True)
-            ]
+            result_dto = ContactDTO.model_validate(added_contact, from_attributes=True)
             return result_dto
         return None
 

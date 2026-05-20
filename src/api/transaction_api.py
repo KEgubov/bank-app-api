@@ -8,7 +8,7 @@ from src.services.transaction_service import txn_service
 router = APIRouter(prefix="/bank_app/v1/history", tags=["Transaction"])
 
 
-@router.get("/all_operations")
+@router.get("/")
 async def get_all_txn_from_account(
     current_user: CurrentUserDep,
 ) -> dict[str, bool | Any]:
