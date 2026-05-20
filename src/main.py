@@ -1,10 +1,14 @@
 import uvicorn
-from fastapi import FastAPI, Request, Response
-from starlette.responses import JSONResponse
+from fastapi import FastAPI
 
 from src.api import main_router
+from src.api.exception_handlers import (
+    duplicate_error_handler,
+    repository_error_handler,
+    business_error_handler,
+)
 from src.configs.auth_config import security
-from src.repositories.exceptions import RepositoryError
+from src.repositories.exceptions import DuplicateError, RepositoryError
 from src.services.exceptions import BusinessError
 
 app = FastAPI()
@@ -13,30 +17,9 @@ app.include_router(main_router)
 
 security.handle_errors(app)
 
-
-@app.exception_handler(RepositoryError)
-def repository_error_handler(request: Request, exc: RepositoryError) -> Response:
-    return JSONResponse(
-        status_code=400,
-        content={
-            "success": False,
-            "error": exc.message,
-            "error_code": exc.error_code,
-        },
-    )
-
-
-@app.exception_handler(BusinessError)
-def business_error_handler(request: Request, exc: BusinessError) -> Response:
-    return JSONResponse(
-        status_code=400,
-        content={
-            "success": False,
-            "error": exc.message,
-            "error_code": exc.error_code,
-        },
-    )
-
+app.add_exception_handler(DuplicateError, duplicate_error_handler)
+app.add_exception_handler(RepositoryError, repository_error_handler)
+app.add_exception_handler(BusinessError, business_error_handler)
 
 if __name__ == "__main__":
     uvicorn.run(app)
