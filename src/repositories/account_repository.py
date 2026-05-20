@@ -8,7 +8,7 @@ from sqlalchemy.orm import joinedload
 from src.core.database import async_session
 from src.models.base_models import Account, User, Transaction, TxnType, Card
 from src.repositories.base_repository import BaseRepository
-from src.repositories.exceptions import RepositoryError
+from src.repositories.exceptions import RepositoryError, DuplicateError
 
 
 class AccountRepository(BaseRepository[Account]):
@@ -16,7 +16,7 @@ class AccountRepository(BaseRepository[Account]):
         super().__init__(Account)
 
     @staticmethod
-    async def create_account_in_db(account: Account) -> Account:
+    async def create_account_in_db(account: Account) -> Account | None:
         """
         Метод принимает модель Account с сервиса
         от метода validate_account, добавляет объект в сессию
@@ -27,10 +27,17 @@ class AccountRepository(BaseRepository[Account]):
         :return: Account
         """
         async with async_session() as session:
-            session.add(account)
-            await session.commit()
-            await session.refresh(account)
-            return account
+            try:
+                session.add(account)
+                await session.commit()
+                await session.refresh(account)
+                return account
+            except IntegrityError as e:
+                if 'already exists' in str(e.orig) and 'user_id' in str(e.orig):
+                    raise DuplicateError(
+                        message="Account already exists",
+                        error_code="DUPLICATE_ACCOUNT",
+                    )
 
     @staticmethod
     async def get_account_info(user_id: int) -> Account | None:

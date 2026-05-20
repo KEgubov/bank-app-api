@@ -1,8 +1,10 @@
 from sqlalchemy import select, Row
+from sqlalchemy.exc import IntegrityError
 
 from src.core.database import async_session
 from src.models.base_models import User, Account, Card
 from src.repositories.base_repository import BaseRepository
+from src.repositories.exceptions import DuplicateError
 
 
 class UserRepository(BaseRepository[User]):
@@ -10,12 +12,19 @@ class UserRepository(BaseRepository[User]):
         super().__init__(User)
 
     @staticmethod
-    async def create_user_in_db(user: User) -> User:
+    async def create_user_in_db(user: User) -> User | None:
         async with async_session() as session:
-            session.add(user)
-            await session.commit()
-            await session.refresh(user)
-            return user
+            try:
+                session.add(user)
+                await session.commit()
+                await session.refresh(user)
+                return user
+            except IntegrityError as e:
+                if "already exists" in str(e.orig):
+                    raise DuplicateError(
+                        message="User already exists",
+                        error_code="USER_DUPLICATE",
+                    )
 
     @staticmethod
     async def get_current_user_in_db(user_id: int) -> Row[tuple[int, str]] | None:
@@ -49,7 +58,7 @@ class UserRepository(BaseRepository[User]):
                 User.user_id, User.first_name, User.last_name, User.super_last_name
             ).where(User.phone_number == phone_number)
             target_name = await session.execute(query)
-            return target_name.all()
+            return target_name.first()
 
     @staticmethod
     async def get_user_profile(user_id: int) -> list[User] | None:
@@ -60,7 +69,7 @@ class UserRepository(BaseRepository[User]):
         async with async_session() as session:
             query = select(User).where(User.user_id == user_id)
             model_user = await session.execute(query)
-            return model_user.scalars().all()
+            return model_user.scalar_one()
 
     @staticmethod
     async def get_find_owner_name(user_id: int) -> Row[tuple[int, str]] | None:
@@ -77,7 +86,7 @@ class UserRepository(BaseRepository[User]):
                 User.super_last_name,
             ).where(User.user_id == user_id)
             owner_name = await session.execute(query)
-            return owner_name.all()
+            return owner_name.first()
 
 
 user_repository = UserRepository()

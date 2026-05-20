@@ -1,9 +1,11 @@
 from sqlalchemy import select, Row, delete
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import selectinload
 
 from src.core.database import async_session
 from src.models.base_models import Contact, User
 from src.repositories.base_repository import BaseRepository
+from src.repositories.exceptions import DuplicateError
 
 
 class ContactsRepository(BaseRepository[Contact]):
@@ -11,17 +13,24 @@ class ContactsRepository(BaseRepository[Contact]):
         super().__init__(Contact)
 
     @staticmethod
-    async def create_contact_in_db(contact: Contact) -> Contact:
+    async def create_contact_in_db(contact: Contact) -> Contact | None:
         """
         Создание контакта в базе данных
         :param contact:
         :return: Contact
         """
         async with async_session() as session:
-            session.add(contact)
-            await session.commit()
-            await session.refresh(contact)
-            return contact
+            try:
+                session.add(contact)
+                await session.commit()
+                await session.refresh(contact)
+                return contact
+            except IntegrityError as e:
+                if "already exists" in str(e.orig):
+                    raise DuplicateError(
+                        message="Contact already exists",
+                        error_code="DUPLICATE_CONTACT",
+                    )
 
     @staticmethod
     async def find_user_by_phone_number(phone_number: str) -> Row[tuple[str]] | None:
@@ -32,15 +41,9 @@ class ContactsRepository(BaseRepository[Contact]):
         :return: Row[tuple[str]] | None
         """
         async with async_session() as session:
-            query = (
-                select(
-                    User.first_name,
-                    User.last_name,
-                    User.super_last_name,
-                    User.phone_number
-                )
-                .where(User.phone_number == phone_number)
-            )
+            query = select(
+                User.first_name, User.last_name, User.super_last_name, User.phone_number
+            ).where(User.phone_number == phone_number)
             user_model = await session.execute(query)
             return user_model.all() if user_model else None
 
