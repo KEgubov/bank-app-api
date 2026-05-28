@@ -11,7 +11,7 @@ from src.configs.auth_config import security
 from src.repositories.exceptions import DuplicateError, RepositoryError
 from src.services.exceptions import BusinessError
 
-app = FastAPI()
+app = FastAPI(title="BankApp API")
 
 app.include_router(main_router)
 
