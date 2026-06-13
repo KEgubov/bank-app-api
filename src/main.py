@@ -20,6 +20,3 @@ security.handle_errors(app)
 app.add_exception_handler(DuplicateError, duplicate_error_handler)
 app.add_exception_handler(RepositoryError, repository_error_handler)
 app.add_exception_handler(BusinessError, business_error_handler)
-
-if __name__ == "__main__":
-    uvicorn.run(app)
