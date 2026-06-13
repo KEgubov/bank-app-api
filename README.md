@@ -33,6 +33,7 @@
 - **Alembic** – миграции базы данных
 - **Pydantic** – валидация данных
 - **Uvicorn** – ASGI-сервер
+- **Docker** - контейнеризация
 
 ## 📦 Установка и запуск
 
@@ -49,49 +50,11 @@ git clone https://github.com/KEgubov/bank-app-api.git
 cd bank-app-api
 ```
 
-## 2. Создание виртуального окружения
+## 2. Запуск
+Запуск осуществляется одной командой в терминале:
+
 ```bash
-python -m venv venv
-source venv/bin/activate      # Linux/macOS
-venv\Scripts\activate         # Windows
-```
-
-## 3. Установка зависимостей
-```bash
-pip install -r requirements.txt
-```
-
-## 4. Настройка переменных окружения
-```bash
-cp .env_example .env           # Cкопируйте файл-пример и заполните свои значения
-```
-### Отредактируйте .env (укажите URL вашей БД и секретный ключ):
-```ini
-DB_HOST=localhost
-DB_PORT=5432
-DB_USER=postgres
-DB_PASS=password
-DB_NAME=db_name
-
-
-JWT_SECRET_KEY=your-secret-key-here-change-me
-JWT_ACCESS_COOKIE_NAME=your_jwt_cookie_name
-```
-## 5. Создание базы данных (локальный PostgreSQL)
-
-### Восстановите схему из дампа:
-```bash
-psql -U postgres -d bank_app -f schema.sql
-```
-
-## 6. Применение миграций (Alembic)
-```bash
-alembic upgrade head
-```
-
-## 7. Запуск сервера (Uvicorn)
-```bash
-uvicorn src.main:app --reload
+docker compose up --build
 ```
 
 ## 📚 Документация API
@@ -131,7 +94,7 @@ uvicorn src.main:app --reload
 - [ ] Написать тесты (pytest) для всех эндпоинтов
 - [ ] Подключить кэширование (Redis) для часто запрашиваемых данных
 - [ ] Добавить логирование (через `loguru` или стандартный `logging`)
-- [ ] Контейнеризация: добавить `Dockerfile` и `docker-compose.yml`
+- [+] Контейнеризация: добавить `Dockerfile` и `docker-compose.yml`
 - [ ] Настроить CI/CD (GitHub Actions) для автоматического запуска тестов
 - [ ] Создать фронтенд для демонстрации
 
